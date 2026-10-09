@@ -1,0 +1,22 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    strictPort: true,
+    watch: {
+      ignored: ['**/rec/**', '**/dist/**', '**/*.log']
+    },
+    proxy: {
+      '/api/web': { target: 'http://127.0.0.1:1337', changeOrigin: false }
+    }
+  },
+  preview: {
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api/web': { target: 'http://127.0.0.1:1337', changeOrigin: false }
+    }
+  }
+});
