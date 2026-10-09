@@ -11,7 +11,7 @@ import { Palette, Monitor, Moon, Sun, ArrowLeft, LogOut } from 'lucide-react';
 import './style.css';
 
 // Link back to user's server Portal Index
-export const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || '/';
+export const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'https://roselle.yuzaki.xyz';
 
 export function CloudflareApp() {
   const [user, setUser] = useState<User | null>(null);
@@ -229,7 +229,7 @@ export function CloudflareApp() {
 
             {/* Link back to Main Server Portal */}
             <button className="btn-secondary" onClick={returnToPortal} title="Return to Portal Homepage">
-              <ArrowLeft size={14} /> 返回官网
+              <ArrowLeft size={14} /> Back to Portal
             </button>
 
             {user ? (
@@ -244,7 +244,7 @@ export function CloudflareApp() {
               </div>
             ) : (
               <button className="btn-primary" onClick={() => setAuthOpen(true)}>
-                登录账号
+                Sign In
               </button>
             )}
           </div>
@@ -290,7 +290,7 @@ export function CloudflareApp() {
           <div className="glass-panel" style={{ padding: '36px', textAlign: 'center' }}>
             <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>Please log in to access the Roselle console.</p>
             <button className="btn-primary" onClick={() => setAuthOpen(true)}>
-              登录账号
+              Sign In
             </button>
           </div>
         </div>

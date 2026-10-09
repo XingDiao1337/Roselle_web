@@ -159,7 +159,7 @@ export function PortalApp() {
 
             {/* Jump to Cloudflare Pages App / Console */}
             <button className="btn-primary" onClick={goToApp} title="Open Roselle Web Console">
-              进入控制台 <ArrowRight size={15} />
+              Launch Console <ArrowRight size={15} />
             </button>
           </div>
         </nav>
