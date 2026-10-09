@@ -4,11 +4,12 @@ import { RoseLogo } from './components/common/RoseLogo';
 import { Toast } from './components/common/Toast';
 import { PALETTES, ROSE_QUOTES, type PaletteOption } from './components/common/Navbar';
 import { HomePage } from './components/home/HomePage';
+import { CloudflareLogo } from './components/common/CloudflareLogo';
 import { Palette, Monitor, Moon, Sun, ArrowRight, ExternalLink } from 'lucide-react';
 import './style.css';
 
 // Target URL for the Cloudflare Pages App / Dashboard
-export const APP_URL = (import.meta.env.VITE_APP_URL || '/app').replace(/\/+$/, '');
+export const APP_URL = (import.meta.env.VITE_APP_URL || 'https://roselle-web.pages.dev').replace(/\/+$/, '');
 
 export function PortalApp() {
   const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null);
@@ -172,8 +173,13 @@ export function PortalApp() {
         onOpenLogin={goToApp}
       />
 
-      <footer className="app-footer">
-        Roselle Cloud & Client Platform · Minecraft 26.2 + Forge 1.8.9
+      <footer className="app-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '24px 16px' }}>
+        <div>Roselle Cloud & Client Platform · Minecraft 26.2 + Forge 1.8.9</div>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)' }}>
+          <span>Powered by</span>
+          <CloudflareLogo size={18} />
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>Cloudflare</span>
+        </div>
       </footer>
     </>
   );

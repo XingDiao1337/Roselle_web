@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, type User, type Card, type Release, type LoaderInfo } from './api';
 import { RoseLogo } from './components/common/RoseLogo';
+import { CloudflareLogo } from './components/common/CloudflareLogo';
 import { Toast } from './components/common/Toast';
 import { PALETTES, type PaletteOption } from './components/common/Navbar';
 import { AuthModal } from './components/auth/AuthModal';
@@ -295,8 +296,13 @@ export function CloudflareApp() {
         </div>
       )}
 
-      <footer className="app-footer">
-        Roselle Cloud Console · Powered by Cloudflare Pages & Dedicated Server Node
+      <footer className="app-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '24px 16px' }}>
+        <div>Roselle Cloud Console · Minecraft 26.2 + Forge 1.8.9</div>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)' }}>
+          <span>Powered by</span>
+          <CloudflareLogo size={18} />
+          <span style={{ fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>Cloudflare</span>
+        </div>
       </footer>
     </>
   );
