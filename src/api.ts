@@ -15,7 +15,23 @@ export async function api<T>(path: string, method = 'GET', data?: unknown): Prom
     headers: form ? {} : { 'Content-Type': 'application/json' },
     body: data === undefined ? undefined : form ? data : JSON.stringify(data)
   });
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+
+  const text = await res.text();
+  let body: Record<string, unknown> | null = null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    body = null;
+  }
+
+  if (!res.ok) {
+    if (body && typeof body.error === 'string') {
+      throw new Error(body.error);
+    }
+    if (text.includes('1003') || text.includes('Direct IP Access Not Allowed')) {
+      throw new Error('Cloudflare Error 1003: Direct IP Access Not Allowed. Please configure a domain name for BACKEND_URL.');
+    }
+    throw new Error(text && text.length < 160 ? text : `Request failed (${res.status})`);
+  }
   return body as T;
 }
