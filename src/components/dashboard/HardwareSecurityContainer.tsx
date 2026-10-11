@@ -1,6 +1,7 @@
 import React from 'react';
 import { HardDrive, RefreshCw } from 'lucide-react';
 import { api, type User } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface HardwareSecurityContainerProps {
   user: User;
@@ -8,6 +9,7 @@ export interface HardwareSecurityContainerProps {
   run: (work: () => Promise<void>) => Promise<void>;
   setUser: (u: User | null) => void;
   notify: (msg: string, err?: boolean) => void;
+  content?: UiContent['hardware'];
 }
 
 export function HardwareSecurityContainer({
@@ -15,42 +17,55 @@ export function HardwareSecurityContainer({
   pending,
   run,
   setUser,
-  notify
+  notify,
+  content
 }: HardwareSecurityContainerProps) {
+  const c = content || {
+    title: 'Hardware & Device Binding',
+    subtitle: 'Cryptographic Machine Identification',
+    description: 'Your account binds cryptographically to your Windows PC on client injection. If you switch computers, reset your hardware binding below.',
+    statusLabel: 'Binding Status',
+    boundStatus: 'Bound to Device',
+    unboundStatus: 'Unbound / Flexible',
+    signatureLabel: 'Hardware Signature',
+    clientAccessLabel: 'Client Access',
+    resetBtn: 'Reset Hardware Binding'
+  };
+
   return (
     <div className="profile-section-box">
       <div className="profile-section-title">
         <HardDrive size={18} />
         <div>
-          <h4>Hardware & Device Binding</h4>
-          <span>Cryptographic Machine Identification</span>
+          <h4>{c.title}</h4>
+          <span>{c.subtitle}</span>
         </div>
       </div>
 
       <p className="profile-section-desc">
-        Your account binds cryptographically to your Windows PC on client injection. If you switch computers, reset your hardware binding below.
+        {c.description}
       </p>
 
       <div className="detail-row">
-        <span className="detail-label">Binding Status</span>
+        <span className="detail-label">{c.statusLabel}</span>
         <span className="detail-value">
           {user.hardwareBound ? (
-            <span className="badge badge-active">Bound to Device</span>
+            <span className="badge badge-active">{c.boundStatus}</span>
           ) : (
-            <span className="badge badge-inactive">Not Bound (Binds on First Launch)</span>
+            <span className="badge badge-inactive">{c.unboundStatus}</span>
           )}
         </span>
       </div>
 
       <div className="detail-row">
-        <span className="detail-label">Hardware Signature</span>
+        <span className="detail-label">{c.signatureLabel}</span>
         <span className="detail-value" style={{ fontFamily: 'monospace', fontSize: 12 }}>
           {user.hardwareHash ? `${user.hardwareHash.slice(0, 24)}…` : 'None (Pending Injection)'}
         </span>
       </div>
 
       <div className="detail-row">
-        <span className="detail-label">Client Access</span>
+        <span className="detail-label">{c.clientAccessLabel}</span>
         <span className="detail-value">
           {user.active ? 'Subscription Active' : 'Subscription Required'}
         </span>
@@ -70,7 +85,7 @@ export function HardwareSecurityContainer({
           }
           style={{ width: '100%', justifyContent: 'center' }}
         >
-          <RefreshCw size={14} /> Reset Hardware Binding
+          <RefreshCw size={14} /> {c.resetBtn}
         </button>
       </div>
     </div>

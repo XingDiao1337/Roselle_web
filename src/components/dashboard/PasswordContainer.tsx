@@ -1,20 +1,32 @@
 import React, { type FormEvent } from 'react';
 import { Lock } from 'lucide-react';
 import { api, type User } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface PasswordContainerProps {
   pending: boolean;
   run: (work: () => Promise<void>) => Promise<void>;
   setUser: (u: User | null) => void;
   notify: (msg: string, err?: boolean) => void;
+  content?: UiContent['password'];
 }
 
 export function PasswordContainer({
   pending,
   run,
   setUser,
-  notify
+  notify,
+  content
 }: PasswordContainerProps) {
+  const c = content || {
+    title: 'Security & Password',
+    subtitle: 'Update Account Credentials',
+    description: 'Updating your password immediately invalidates active web sessions for enhanced security. You will need to sign in again.',
+    currentLabel: 'Current Password',
+    newLabel: 'New Password',
+    submitBtn: 'Update Password'
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
@@ -30,22 +42,22 @@ export function PasswordContainer({
       <div className="profile-section-title">
         <Lock size={18} />
         <div>
-          <h4>Security & Password</h4>
-          <span>Update Account Credentials</span>
+          <h4>{c.title}</h4>
+          <span>{c.subtitle}</span>
         </div>
       </div>
 
       <p className="profile-section-desc">
-        Updating your password immediately invalidates active web sessions for enhanced security. You will need to sign in again.
+        {c.description}
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div className="form-group">
-          <label>Current Password</label>
+          <label>{c.currentLabel}</label>
           <input className="form-input" name="oldPassword" type="password" required />
         </div>
         <div className="form-group">
-          <label>New Password</label>
+          <label>{c.newLabel}</label>
           <input
             className="form-input"
             name="password"
@@ -61,7 +73,7 @@ export function PasswordContainer({
           disabled={pending}
           style={{ marginTop: 4, width: '100%', justifyContent: 'center' }}
         >
-          Update Password
+          {c.submitBtn}
         </button>
       </form>
     </div>

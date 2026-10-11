@@ -1,6 +1,7 @@
 import React, { type FormEvent } from 'react';
 import { Download, Upload } from 'lucide-react';
 import { api, type Release, type LoaderInfo } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface ReleasesLoaderContainerProps {
   releases: Release[];
@@ -9,6 +10,7 @@ export interface ReleasesLoaderContainerProps {
   run: (work: () => Promise<void>) => Promise<void>;
   refreshAdmin: () => Promise<void>;
   notify: (msg: string, err?: boolean) => void;
+  content?: UiContent['releases'];
 }
 
 export function ReleasesLoaderContainer({
@@ -17,8 +19,26 @@ export function ReleasesLoaderContainer({
   pending,
   run,
   refreshAdmin,
-  notify
+  notify,
+  content
 }: ReleasesLoaderContainerProps) {
+  const c = content || {
+    injectorStatusTitle: 'Native Injector Status',
+    injectorExeName: 'RoselleLoader.exe',
+    injectorDesc: 'The standalone Windows x64 client that authenticates hardware, checks cloud licenses, and injects Roselle.',
+    downloadInjectorBtn: 'Download Injector (.exe)',
+    publishInjectorTitle: 'Publish Injector',
+    publishInjectorSubtitle: 'Target x64 Executable',
+    publishInjectorBtn: 'Publish Injector',
+    publishReleaseTitle: 'Publish New Release',
+    publishReleaseSubtitle: 'Version-specific x64 DLL',
+    gameVersionLabel: 'Game Version',
+    releaseVersionLabel: 'Release Version',
+    dllFileLabel: 'DLL Binary File (.dll)',
+    publishReleaseBtn: 'Publish Release',
+    recordsTitle: 'Release Records'
+  };
+
   const formatDate = (ms: number) =>
     ms ? new Date(ms).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Not activated';
 
@@ -48,11 +68,11 @@ export function ReleasesLoaderContainer({
       <div className="dash-grid-2">
         <div className="glass-panel dash-card">
           <div className="dash-card-header">
-            <h3>Native Injector Status</h3>
-            <span>RoselleLoader.exe</span>
+            <h3>{c.injectorStatusTitle}</h3>
+            <span>{c.injectorExeName}</span>
           </div>
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            The standalone Windows x64 client that authenticates hardware, checks cloud licenses, and injects Roselle.
+            {c.injectorDesc}
           </p>
           <div style={{ marginTop: 12 }}>
             <div className="detail-row">
@@ -93,15 +113,15 @@ export function ReleasesLoaderContainer({
               download="RoselleLoader.exe"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px' }}
             >
-              <Download size={15} /> Download Injector (.exe)
+              <Download size={15} /> {c.downloadInjectorBtn}
             </a>
           </div>
         </div>
 
         <div className="glass-panel dash-card">
           <div className="dash-card-header">
-            <h3>Publish Injector</h3>
-            <span>Target x64 Executable</span>
+            <h3>{c.publishInjectorTitle}</h3>
+            <span>{c.publishInjectorSubtitle}</span>
           </div>
           <form onSubmit={handleUploadLoader}>
             <div className="form-group">
@@ -113,7 +133,7 @@ export function ReleasesLoaderContainer({
               across the homepage and user consoles.
             </p>
             <button type="submit" className="btn-primary" disabled={pending}>
-              <Upload size={15} /> Publish Injector
+              <Upload size={15} /> {c.publishInjectorBtn}
             </button>
           </form>
         </div>
@@ -123,34 +143,34 @@ export function ReleasesLoaderContainer({
       <div className="dash-grid-2" style={{ alignItems: 'start' }}>
         <div className="glass-panel dash-card">
           <div className="dash-card-header">
-            <h3>Publish New Release</h3>
-            <span>Version-specific x64 DLL</span>
+            <h3>{c.publishReleaseTitle}</h3>
+            <span>{c.publishReleaseSubtitle}</span>
           </div>
           <form onSubmit={handleUploadRelease}>
             <div className="form-group">
-              <label>Game Version</label>
+              <label>{c.gameVersionLabel}</label>
               <select className="form-input" name="channel" defaultValue="modern" required>
                 <option value="modern">Minecraft 26.2</option>
                 <option value="legacy">Forge 1.8.9</option>
               </select>
             </div>
             <div className="form-group">
-              <label>Release Version</label>
+              <label>{c.releaseVersionLabel}</label>
               <input className="form-input" name="version" placeholder="e.g. 26.2-r1 or 1.8.9-r1" required />
             </div>
             <div className="form-group">
-              <label>DLL Binary File (.dll)</label>
+              <label>{c.dllFileLabel}</label>
               <input className="form-input" type="file" name="file" accept=".dll" required />
             </div>
             <button type="submit" className="btn-primary" disabled={pending}>
-              <Upload size={15} /> Publish Release
+              <Upload size={15} /> {c.publishReleaseBtn}
             </button>
           </form>
         </div>
 
         <div className="glass-panel dash-card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="dash-card-header">
-            <h3>Release Records</h3>
+            <h3>{c.recordsTitle}</h3>
             <span>{releases.length} Published Versions</span>
           </div>
           <div className="table-container scrollable-records">

@@ -5,6 +5,7 @@ import { UserManagementContainer } from './UserManagementContainer';
 import { KeyGeneratorContainer } from './KeyGeneratorContainer';
 import { ReleasesLoaderContainer } from './ReleasesLoaderContainer';
 import type { User, Card, Release, LoaderInfo } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface DashboardViewProps {
   user: User;
@@ -24,6 +25,7 @@ export interface DashboardViewProps {
   selectedUser: User | null;
   setSelectedUser: (u: User | null) => void;
   refreshAdmin: () => Promise<void>;
+  content?: UiContent;
 }
 
 export function DashboardView({
@@ -43,7 +45,8 @@ export function DashboardView({
   setGenerated,
   selectedUser,
   setSelectedUser,
-  refreshAdmin
+  refreshAdmin,
+  content
 }: DashboardViewProps) {
   return (
     <div className="dashboard-container">
@@ -64,6 +67,7 @@ export function DashboardView({
           run={run}
           setUser={setUser}
           notify={notify}
+          content={content}
         />
       )}
 
@@ -102,6 +106,7 @@ export function DashboardView({
           run={run}
           refreshAdmin={refreshAdmin}
           notify={notify}
+          content={content?.releases}
         />
       )}
     </div>

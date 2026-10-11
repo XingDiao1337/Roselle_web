@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
 import { Upload, ShieldCheck, AlertCircle, Copy, Check, Download } from 'lucide-react';
 import { api, type User } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface ProfileHeroBannerProps {
   user: User;
   run: (work: () => Promise<void>) => Promise<void>;
   setUser: (u: User | null) => void;
   notify: (msg: string, err?: boolean) => void;
+  content?: UiContent['profile'];
 }
 
 export function ProfileHeroBanner({
   user,
   run,
   setUser,
-  notify
+  notify,
+  content
 }: ProfileHeroBannerProps) {
   const [copiedUid, setCopiedUid] = useState(false);
+
+  const c = content || {
+    downloadLoader: 'Download Loader',
+    uploadAvatar: 'Upload',
+    memberSince: 'Member Since',
+    subscriptionExpiry: 'Subscription Expiry',
+    activeSubscription: 'Active Subscription',
+    expiredSubscription: 'Inactive Subscription',
+    administrator: 'Administrator',
+    standardUser: 'Member'
+  };
 
   const copyUid = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -39,7 +53,7 @@ export function ProfileHeroBanner({
         )}
         <label className="profile-avatar-upload-btn" title="Change Avatar">
           <Upload size={12} />
-          <span>Upload</span>
+          <span>{c.uploadAvatar}</span>
           <input
             type="file"
             accept="image/png,image/jpeg"
@@ -64,15 +78,15 @@ export function ProfileHeroBanner({
         <div className="profile-hero-name-row">
           <h2>{user.username}</h2>
           <span className={`badge ${user.role === 'ADMIN' ? 'badge-admin' : 'badge-role'}`}>
-            {user.role === 'ADMIN' ? 'Administrator' : 'Standard User'}
+            {user.role === 'ADMIN' ? c.administrator : c.standardUser}
           </span>
           {user.active ? (
             <span className="badge badge-active">
-              <ShieldCheck size={13} /> Active Subscription
+              <ShieldCheck size={13} /> {c.activeSubscription}
             </span>
           ) : (
             <span className="badge badge-inactive">
-              <AlertCircle size={13} /> Inactive Subscription
+              <AlertCircle size={13} /> {c.expiredSubscription}
             </span>
           )}
         </div>
@@ -90,11 +104,11 @@ export function ProfileHeroBanner({
             </button>
           </div>
           <div className="profile-meta-item">
-            <span className="meta-label">Member Since:</span>
+            <span className="meta-label">{c.memberSince}:</span>
             <span className="meta-value">{formatDate(user.createdAt)}</span>
           </div>
           <div className="profile-meta-item">
-            <span className="meta-label">Subscription Expiry:</span>
+            <span className="meta-label">{c.subscriptionExpiry}:</span>
             <span className="meta-value" style={{ color: user.active ? 'var(--accent)' : 'inherit', fontWeight: 600 }}>
               {user.expiresAt ? formatDate(user.expiresAt) : 'Not Activated'}
             </span>
@@ -110,7 +124,7 @@ export function ProfileHeroBanner({
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', fontSize: 13.5 }}
             download="RoselleLoader.exe"
           >
-            <Download size={16} /> Download Loader
+            <Download size={16} /> {c.downloadLoader}
           </a>
         </div>
       )}

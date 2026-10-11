@@ -35,7 +35,16 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        app: 'app.html'
+        app: 'app.html',
+        cloudContainers: path.resolve(__dirname, 'src/cloud-containers.tsx')
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'cloudContainers') {
+            return 'cloud-containers.js';
+          }
+          return 'assets/[name]-[hash].js';
+        }
       }
     }
   },

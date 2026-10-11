@@ -4,6 +4,7 @@ import { CardActivationContainer } from './CardActivationContainer';
 import { HardwareSecurityContainer } from './HardwareSecurityContainer';
 import { PasswordContainer } from './PasswordContainer';
 import type { User } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface ProfileContainerProps {
   user: User;
@@ -11,6 +12,7 @@ export interface ProfileContainerProps {
   run: (work: () => Promise<void>) => Promise<void>;
   setUser: (u: User | null) => void;
   notify: (msg: string, err?: boolean) => void;
+  content?: UiContent;
 }
 
 export function ProfileContainer({
@@ -18,7 +20,8 @@ export function ProfileContainer({
   pending,
   run,
   setUser,
-  notify
+  notify,
+  content
 }: ProfileContainerProps) {
   return (
     <div className="glass-panel profile-unified-card">
@@ -28,6 +31,7 @@ export function ProfileContainer({
         run={run}
         setUser={setUser}
         notify={notify}
+        content={content?.profile}
       />
 
       {/* Interior Sections: License Activation, Hardware Binding, Credentials */}
@@ -38,6 +42,7 @@ export function ProfileContainer({
           pending={pending}
           setUser={setUser}
           notify={notify}
+          content={content?.activation}
         />
 
         {/* Detailed Hardware & Device Security Container */}
@@ -47,6 +52,7 @@ export function ProfileContainer({
           run={run}
           setUser={setUser}
           notify={notify}
+          content={content?.hardware}
         />
 
         {/* Change Password Form Container */}
@@ -55,6 +61,7 @@ export function ProfileContainer({
           run={run}
           setUser={setUser}
           notify={notify}
+          content={content?.password}
         />
       </div>
     </div>

@@ -195,58 +195,6 @@ export function PortalApp() {
       notify('Signed out successfully');
     });
 
-  // Loading Screen with Autoblockin-style Progress Bar
-  if (loadingPhase === 'loading') {
-    return (
-      <div className="auth-wrapper" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="glass-panel" style={{ padding: '38px 44px', textAlign: 'center', width: '100%', maxWidth: 440 }}>
-          <div className="brand-badge brand-badge-rose" style={{ width: 56, height: 56, margin: '0 auto 16px' }}>
-            <RoseLogo size={34} color="var(--accent-text)" glow animate />
-          </div>
-          <h3 style={{ marginBottom: 6, fontSize: 18 }}>{content.loading.title}</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
-            {content.loading.subtitle}
-          </p>
-
-          {/* Autoblockin-style Animated Progress Bar */}
-          <div className="autoblockin-progress-wrapper">
-            <div className="autoblockin-progress-track">
-              <div
-                className="autoblockin-progress-bar"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <div className="autoblockin-progress-labels">
-              <span>Transferring Cloud Containers…</span>
-              <span>{progress}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error Screen with Failure Reason & Retry
-  if (loadingPhase === 'error') {
-    return (
-      <div className="auth-wrapper" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="glass-panel remote-container-error" style={{ position: 'relative', maxWidth: 460, borderRadius: 'var(--radius-lg)' }}>
-          <div className="error-badge">
-            <WifiOff size={28} color="#ef4444" />
-          </div>
-          <h3>{content.loading.errorTitle}</h3>
-          <p className="error-reason">{errorInfo?.reason}</p>
-          {errorInfo?.details && <p className="error-details">{errorInfo.details}</p>}
-          <div className="error-actions" style={{ marginTop: 16 }}>
-            <button type="button" className="btn-primary" onClick={initAll}>
-              <RefreshCw size={15} /> {content.loading.retryBtn}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const quotesList = content.site.quotes && content.site.quotes.length > 0 ? content.site.quotes : DEFAULT_CONTENT.site.quotes;
 
   return (
@@ -361,9 +309,35 @@ export function PortalApp() {
         </nav>
       </div>
 
-      {/* Main Container Views */}
-      {!user ? (
-        /* Unauthenticated: Centered Frosted Glass Login Container matching 19a47354-ff6f-42bd-a54a-8378bd5d70ac.png */
+      {/* Main Container Views / Blank Container Framework */}
+      {loadingPhase === 'loading' ? (
+        /* Blank Container Framework (Matches 19a47354-ff6f-42bd-a54a-8378bd5d70ac.png) */
+        <div className="auth-wrapper">
+          <div className="auth-blank-container">
+            <div className="auth-blank-track">
+              <div className="auth-blank-bar" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        </div>
+      ) : loadingPhase === 'error' ? (
+        /* Failure inside Blank Container Framework */
+        <div className="auth-wrapper">
+          <div className="auth-blank-container remote-container-error">
+            <div className="error-badge">
+              <WifiOff size={28} color="#ef4444" />
+            </div>
+            <h3>{content.loading.errorTitle}</h3>
+            <p className="error-reason">{errorInfo?.reason}</p>
+            {errorInfo?.details && <p className="error-details">{errorInfo.details}</p>}
+            <div className="error-actions" style={{ marginTop: 16 }}>
+              <button type="button" className="btn-primary" onClick={initAll}>
+                <RefreshCw size={15} /> {content.loading.retryBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : !user ? (
+        /* Unauthenticated: Centered Frosted Glass Login Container populated with Cloudflare text & inputs */
         <AuthModal
           pending={pending}
           content={content.auth}
@@ -379,7 +353,7 @@ export function PortalApp() {
           }
         />
       ) : (
-        /* Authenticated: Integrated Dashboard Containers from user screenshots */
+        /* Authenticated: Integrated Dashboard Containers with Cloudflare text & components */
         <DashboardView
           user={user}
           dashTab={dashTab}
@@ -398,6 +372,7 @@ export function PortalApp() {
           selectedUser={selectedUser}
           setSelectedUser={setSelectedUser}
           refreshAdmin={refreshAdmin}
+          content={content}
         />
       )}
 

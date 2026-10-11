@@ -1,12 +1,14 @@
 import React, { useState, useEffect, type FormEvent } from 'react';
 import { KeyRound, Sparkles, WifiOff, AlertTriangle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { api, type User } from '../../api';
+import type { UiContent } from '../../content';
 
 export interface CardActivationContainerProps {
   user: User;
   pending: boolean;
   setUser: (u: User | null) => void;
   notify: (msg: string, err?: boolean) => void;
+  content?: UiContent['activation'];
 }
 
 interface NetworkErrorInfo {
@@ -20,7 +22,8 @@ export function CardActivationContainer({
   user,
   pending,
   setUser,
-  notify
+  notify,
+  content
 }: CardActivationContainerProps) {
   const [cardKey, setCardKey] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -29,6 +32,16 @@ export function CardActivationContainer({
     reason: ''
   });
   const [isRetrying, setIsRetrying] = useState(false);
+
+  const c = content || {
+    title: 'License Activation',
+    subtitle: 'Cryptographic License & Subscription Container',
+    description: 'Enter your purchased license card key below. The cloud verifies and automatically extends your subscription.',
+    inputLabel: 'License Card Key',
+    inputPlaceholder: 'e.g. ROS-XXXX-XXXX',
+    activateBtn: 'Activate License Key',
+    statusLabel: 'Current License Status'
+  };
 
   // Monitor browser network status
   useEffect(() => {
@@ -153,8 +166,8 @@ export function CardActivationContainer({
       <div className="profile-section-title">
         <KeyRound size={18} />
         <div>
-          <h4>License Activation</h4>
-          <span>Cryptographic License & Subscription Container</span>
+          <h4>{c.title}</h4>
+          <span>{c.subtitle}</span>
         </div>
       </div>
 
@@ -218,15 +231,15 @@ export function CardActivationContainer({
         /* ==================== Normal License Form View ==================== */
         <>
           <p className="profile-section-desc">
-            Enter your purchased license card key below. The cloud verifies and automatically extends your subscription.
+            {c.description}
           </p>
 
           <form onSubmit={handleActivate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div className="form-group">
-              <label>License Card Key</label>
+              <label>{c.inputLabel}</label>
               <input
                 className="form-input"
-                placeholder="e.g. ROS-XXXX-XXXX"
+                placeholder={c.inputPlaceholder}
                 value={cardKey}
                 onChange={e => setCardKey(e.target.value)}
                 disabled={submitting || pending}
@@ -240,12 +253,12 @@ export function CardActivationContainer({
               style={{ width: '100%', justifyContent: 'center' }}
             >
               <Sparkles size={14} />
-              {submitting ? 'Verifying Card Key…' : 'Activate License Key'}
+              {submitting ? 'Verifying Card Key…' : c.activateBtn}
             </button>
           </form>
 
           <div className="detail-row" style={{ marginTop: 'auto', paddingTop: 10 }}>
-            <span className="detail-label">Current License Status</span>
+            <span className="detail-label">{c.statusLabel}</span>
             <span className="detail-value">
               {user.active ? (
                 <span className="badge badge-active" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>

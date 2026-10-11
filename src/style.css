@@ -1759,6 +1759,63 @@ body.is-embedded {
   color: var(--text-subtle);
 }
 
+/* Blank Container Framework (Matches 19a47354-ff6f-42bd-a54a-8378bd5d70ac.png) */
+.auth-blank-container {
+  width: clamp(340px, 86vw, 680px);
+  min-height: 240px;
+  border-radius: 22px;
+  background: rgba(22, 20, 26, 0.6);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 40px;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-blank-track {
+  width: min(440px, 84%);
+  height: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.auth-blank-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-text));
+  box-shadow: 0 0 16px var(--accent-glow);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-blank-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: progressShimmer 1.5s infinite;
+}
+
+/* Console blank skeleton cards */
+.console-skeleton-card {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
 
 
 

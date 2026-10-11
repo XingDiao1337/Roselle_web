@@ -15,7 +15,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       headers: {
         'Access-Control-Allow-Origin': requestOrigin || '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, roselle_web',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, roselle_web, X-Roselle-Token',
+        'Access-Control-Expose-Headers': 'X-Roselle-Token, Set-Cookie',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '86400',
       }
@@ -40,6 +41,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   // This prevents Spring Boot's internal RequestPolicy from rejecting the proxy request with 403 "Web origin rejected"
   headers.delete('origin');
   headers.delete('referer');
+
+  // Support token header fallback in case cross-origin cookies are restricted by client browser
+  const tokenHeader = request.headers.get('X-Roselle-Token') || request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
+  const currentCookie = headers.get('Cookie') || '';
+  if (tokenHeader && !currentCookie.includes('roselle_web=')) {
+    headers.set('Cookie', currentCookie ? `${currentCookie}; roselle_web=${tokenHeader}` : `roselle_web=${tokenHeader}`);
+  }
 
   const newRequest = new Request(targetUrl, {
     method: request.method,
@@ -74,11 +82,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       responseHeaders.set('Access-Control-Allow-Origin', requestOrigin);
       responseHeaders.set('Access-Control-Allow-Credentials', 'true');
     }
+    responseHeaders.set('Access-Control-Expose-Headers', 'X-Roselle-Token, Set-Cookie');
 
     // Rewrite Set-Cookie to allow cross-origin / embedded container usage
     const setCookie = responseHeaders.get('Set-Cookie');
     if (setCookie) {
-      responseHeaders.set('Set-Cookie', setCookie.replace(/SameSite=Strict/gi, 'SameSite=None; Secure'));
+      let rewritten = setCookie.replace(/SameSite=Strict/gi, 'SameSite=None; Secure');
+      if (!rewritten.includes('Partitioned')) {
+        rewritten += '; Partitioned';
+      }
+      responseHeaders.set('Set-Cookie', rewritten);
+
+      // Extract roselle_web token and expose in custom header as resilient fallback
+      const tokenMatch = setCookie.match(/roselle_web=([^;]+)/);
+      if (tokenMatch && tokenMatch[1]) {
+        responseHeaders.set('X-Roselle-Token', tokenMatch[1]);
+      }
     }
 
     // Remove any restrictive X-Frame-Options on API responses
