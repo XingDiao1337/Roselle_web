@@ -1,0 +1,100 @@
+{
+  "site": {
+    "brand": "Roselle",
+    "portalTitle": "Roselle · Sovereign Platform",
+    "consoleTitle": "Roselle Console",
+    "clientSubtitle": "Pure Performance & Refined Aesthetics",
+    "description": "One account and injector for two distinct clients: Minecraft 26.2 and Forge 1.8.9. Choose the matching game version before injection; each version receives its own signed DLL release.",
+    "footer": "Roselle Cloud & Client Platform · Minecraft 26.2 + Forge 1.8.9",
+    "poweredBy": "Powered by Cloudflare",
+    "quotes": [
+      "Red roses signify true, everlasting devotion and passion",
+      "The thorn protects the petal; beauty fortified with security",
+      "Blooms emerge with sovereign poise through the night",
+      "A fragile silhouette guarding immutable cryptographic precision",
+      "Perfection blooms where discipline and architecture meet"
+    ]
+  },
+  "loading": {
+    "title": "Connecting to Roselle Cloud",
+    "subtitle": "Transferring container components & secure configuration from Cloudflare…",
+    "errorTitle": "界面获取失败",
+    "retryBtn": "重新获取界面",
+    "offlineReason": "本地网络断开 (Client Offline): 无法连接至互联网",
+    "timeoutReason": "Cloudflare 边缘节点传输超时 (Connection Timeout): 请检查网络代理或节点延迟"
+  },
+  "auth": {
+    "welcomeTitle": "Welcome Back",
+    "welcomeSubtitle": "Sign in to access your cloud console",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Register your Roselle account",
+    "signInTab": "Sign In",
+    "signUpTab": "Sign Up",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "e.g. roselle_user",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "At least 8 characters",
+    "signInBtn": "Sign In to Account",
+    "signUpBtn": "Create Free Account",
+    "securityBadge": "AES-256 Encrypted Session · Standalone Injector Security"
+  },
+  "profile": {
+    "downloadLoader": "Download Loader",
+    "uploadAvatar": "Upload",
+    "memberSince": "Member Since",
+    "subscriptionExpiry": "Subscription Expiry",
+    "activeSubscription": "Active Subscription",
+    "expiredSubscription": "Expired / Inactive",
+    "administrator": "Administrator",
+    "standardUser": "Member"
+  },
+  "activation": {
+    "title": "License Activation",
+    "subtitle": "Cryptographic License & Subscription Container",
+    "description": "Enter your purchased license card key below. The cloud verifies and automatically extends your subscription.",
+    "inputLabel": "License Card Key",
+    "inputPlaceholder": "e.g. ROS-XXXX-XXXX",
+    "activateBtn": "Activate License Key",
+    "statusLabel": "Current License Status"
+  },
+  "hardware": {
+    "title": "Hardware & Device Binding",
+    "subtitle": "Cryptographic Machine Identification",
+    "description": "Your account binds cryptographically to your Windows PC on client injection. If you switch computers, reset your hardware binding below.",
+    "statusLabel": "Binding Status",
+    "boundStatus": "Bound to Device",
+    "unboundStatus": "Unbound / Flexible",
+    "signatureLabel": "Hardware Signature",
+    "clientAccessLabel": "Client Access",
+    "resetBtn": "Reset Hardware Binding"
+  },
+  "password": {
+    "title": "Security & Password",
+    "subtitle": "Update Account Credentials",
+    "description": "Updating your password immediately invalidates active web sessions for enhanced security. You will need to sign in again.",
+    "currentLabel": "Current Password",
+    "newLabel": "New Password",
+    "submitBtn": "Update Password"
+  },
+  "releases": {
+    "injectorStatusTitle": "Native Injector Status",
+    "injectorExeName": "RoselleLoader.exe",
+    "injectorDesc": "The standalone Windows x64 client that authenticates hardware, checks cloud licenses, and injects Roselle.",
+    "downloadInjectorBtn": "Download Injector (.exe)",
+    "publishInjectorTitle": "Publish Injector",
+    "publishInjectorSubtitle": "Target x64 Executable",
+    "publishInjectorBtn": "Publish Injector",
+    "publishReleaseTitle": "Publish New Release",
+    "publishReleaseSubtitle": "Version-specific x64 DLL",
+    "gameVersionLabel": "Game Version",
+    "releaseVersionLabel": "Release Version",
+    "dllFileLabel": "DLL Binary File (.dll)",
+    "publishReleaseBtn": "Publish Release",
+    "recordsTitle": "Release Records"
+  },
+  "admin": {
+    "usersTitle": "User Management",
+    "generateCardsTitle": "Generate Card Keys",
+    "cardHistoryTitle": "Card Key History"
+  }
+}

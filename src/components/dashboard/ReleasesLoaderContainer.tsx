@@ -120,7 +120,7 @@ export function ReleasesLoaderContainer({
       </div>
 
       {/* DLL Releases Grid */}
-      <div className="dash-grid-2">
+      <div className="dash-grid-2" style={{ alignItems: 'start' }}>
         <div className="glass-panel dash-card">
           <div className="dash-card-header">
             <h3>Publish New Release</h3>
@@ -148,12 +148,12 @@ export function ReleasesLoaderContainer({
           </form>
         </div>
 
-        <div className="glass-panel dash-card">
+        <div className="glass-panel dash-card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="dash-card-header">
             <h3>Release Records</h3>
             <span>{releases.length} Published Versions</span>
           </div>
-          <div className="table-container">
+          <div className="table-container scrollable-records">
             <table>
               <thead>
                 <tr>

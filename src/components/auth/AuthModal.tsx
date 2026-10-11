@@ -1,14 +1,16 @@
 import React, { useState, type FormEvent } from 'react';
 import { ArrowRight, Lock } from 'lucide-react';
 import { RoseLogo } from '../common/RoseLogo';
+import type { UiContent } from '../../content';
 
 export interface AuthModalProps {
   pending: boolean;
-  onBack: () => void;
+  onBack?: () => void;
   onSubmit: (kind: 'login' | 'register', data: Record<string, string>) => void;
+  content?: UiContent['auth'];
 }
 
-export function AuthModal({ pending, onBack, onSubmit }: AuthModalProps) {
+export function AuthModal({ pending, onBack, onSubmit, content }: AuthModalProps) {
   const [kind, setKind] = useState<'login' | 'register'>('login');
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -17,18 +19,36 @@ export function AuthModal({ pending, onBack, onSubmit }: AuthModalProps) {
     onSubmit(kind, data);
   };
 
+  const c = content || {
+    welcomeTitle: 'Welcome Back',
+    welcomeSubtitle: 'Sign in to access your cloud console',
+    registerTitle: 'Create Account',
+    registerSubtitle: 'Register your Roselle account',
+    signInTab: 'Sign In',
+    signUpTab: 'Sign Up',
+    usernameLabel: 'Username',
+    usernamePlaceholder: 'e.g. roselle_user',
+    passwordLabel: 'Password',
+    passwordPlaceholder: 'At least 8 characters',
+    signInBtn: 'Sign In to Account',
+    signUpBtn: 'Create Free Account',
+    securityBadge: 'AES-256 Encrypted Session · Standalone Injector Security'
+  };
+
   return (
     <div className="auth-wrapper">
       <div className="glass-panel auth-card">
         <div className="auth-card-header">
-          <button type="button" className="back-btn" onClick={onBack}>
-            ← Back to Home
-          </button>
+          {onBack && (
+            <button type="button" className="back-btn" onClick={onBack}>
+              ← Back to Home
+            </button>
+          )}
           <div className="brand-badge brand-badge-rose" style={{ width: 48, height: 48, margin: '0 auto 14px' }}>
             <RoseLogo size={28} color="var(--accent-text)" glow />
           </div>
-          <h2>{kind === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
-          <p>{kind === 'login' ? 'Sign in to access your cloud console' : 'Register your Roselle account'}</p>
+          <h2>{kind === 'login' ? c.welcomeTitle : c.registerTitle}</h2>
+          <p>{kind === 'login' ? c.welcomeSubtitle : c.registerSubtitle}</p>
         </div>
 
         <div className="auth-tabs">
@@ -37,20 +57,20 @@ export function AuthModal({ pending, onBack, onSubmit }: AuthModalProps) {
             className={`auth-tab ${kind === 'login' ? 'active' : ''}`}
             onClick={() => setKind('login')}
           >
-            Sign In
+            {c.signInTab}
           </button>
           <button
             type="button"
             className={`auth-tab ${kind === 'register' ? 'active' : ''}`}
             onClick={() => setKind('register')}
           >
-            Sign Up
+            {c.signUpTab}
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
+            <label>{c.usernameLabel}</label>
             <input
               className="form-input"
               name="username"
@@ -58,20 +78,20 @@ export function AuthModal({ pending, onBack, onSubmit }: AuthModalProps) {
               minLength={3}
               maxLength={32}
               pattern="[a-zA-Z0-9_]+"
-              placeholder="e.g. roselle_user"
+              placeholder={c.usernamePlaceholder}
               autoComplete="username"
             />
           </div>
 
           <div className="form-group">
-            <label>Password</label>
+            <label>{c.passwordLabel}</label>
             <input
               className="form-input"
               name="password"
               type="password"
               required
               minLength={8}
-              placeholder="At least 8 characters"
+              placeholder={c.passwordPlaceholder}
               autoComplete={kind === 'login' ? 'current-password' : 'new-password'}
             />
           </div>
@@ -82,7 +102,7 @@ export function AuthModal({ pending, onBack, onSubmit }: AuthModalProps) {
             style={{ width: '100%', marginTop: 8, padding: 12 }}
             disabled={pending}
           >
-            {pending ? 'Connecting…' : kind === 'login' ? 'Sign In to Account' : 'Create Free Account'}
+            {pending ? 'Connecting…' : kind === 'login' ? c.signInBtn : c.signUpBtn}
             <ArrowRight size={16} />
           </button>
         </form>
@@ -100,7 +120,7 @@ export function AuthModal({ pending, onBack, onSubmit }: AuthModalProps) {
           }}
         >
           <Lock size={13} />
-          AES-256 Encrypted Session · Standalone Injector Security
+          {c.securityBadge}
         </p>
       </div>
     </div>
