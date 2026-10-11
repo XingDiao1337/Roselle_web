@@ -8,7 +8,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url);
 
   // Backend origin: defaults to user domain or Cloudflare Pages env variable BACKEND_URL
-  const backendBase = (context.env.BACKEND_URL || 'https://roselle.yuzaki.xyz').replace(/\/+$/, '');
+  const backendBase = (context.env.BACKEND_URL || 'http://api.yuzakitsukasa.top:1337').replace(/\/+$/, '');
   const targetUrl = `${backendBase}${url.pathname}${url.search}`;
 
   const headers = new Headers(request.headers);
