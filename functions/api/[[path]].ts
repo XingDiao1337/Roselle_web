@@ -6,6 +6,21 @@ interface Env {
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request } = context;
   const url = new URL(request.url);
+  const requestOrigin = request.headers.get('Origin');
+
+  // Handle preflight OPTIONS request directly at edge
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': requestOrigin || '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, roselle_web',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
+      }
+    });
+  }
 
   // Backend origin: defaults to user domain or Cloudflare Pages env variable BACKEND_URL
   const backendBase = (context.env.BACKEND_URL || 'http://api.yuzakitsukasa.top:1337').replace(/\/+$/, '');
@@ -20,6 +35,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const targetParsed = new URL(targetUrl);
     headers.set('Host', targetParsed.host);
   } catch {}
+
+  // Strip Origin and Referer when forwarding to the backend server.
+  // This prevents Spring Boot's internal RequestPolicy from rejecting the proxy request with 403 "Web origin rejected"
+  headers.delete('origin');
+  headers.delete('referer');
 
   const newRequest = new Request(targetUrl, {
     method: request.method,
@@ -37,7 +57,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (text.includes('1003') || text.includes('Direct IP Access Not Allowed')) {
         return new Response(
           JSON.stringify({
-            error: 'Cloudflare Error 1003: Direct IP Access Not Allowed. Please configure BACKEND_URL with a domain name (e.g. https://roselle.yuzaki.xyz or http://api.yuzaki.xyz:1337) instead of a raw IP.'
+            error: 'Cloudflare Error 1003: Direct IP Access Not Allowed. Please configure BACKEND_URL with a domain name (e.g. http://api.yuzakitsukasa.top:1337) instead of a raw IP.'
           }),
           {
             status: 502,
@@ -46,7 +66,29 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         );
       }
     }
-    return res;
+
+    const responseHeaders = new Headers(res.headers);
+
+    // Attach CORS headers so caller portal (roselle.yuzaki.xyz) and CF Pages can read responses
+    if (requestOrigin) {
+      responseHeaders.set('Access-Control-Allow-Origin', requestOrigin);
+      responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+    }
+
+    // Rewrite Set-Cookie to allow cross-origin / embedded container usage
+    const setCookie = responseHeaders.get('Set-Cookie');
+    if (setCookie) {
+      responseHeaders.set('Set-Cookie', setCookie.replace(/SameSite=Strict/gi, 'SameSite=None; Secure'));
+    }
+
+    // Remove any restrictive X-Frame-Options on API responses
+    responseHeaders.delete('X-Frame-Options');
+
+    return new Response(res.body, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: responseHeaders
+    });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return new Response(JSON.stringify({ error: `Backend connection failed: ${msg}` }), {
@@ -55,3 +97,4 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     });
   }
 };
+
