@@ -13,21 +13,38 @@ import './style.css';
 // Link back to user's server Portal Index
 export const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || 'https://roselle.yuzaki.xyz';
 
+const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+const isEmbed = searchParams.get('embed') === 'true' || searchParams.get('mode') === 'embed';
+const targetContainer = searchParams.get('container') || 'auth';
+
 export function CloudflareApp() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [dashTab, setDashTab] = useState('profile');
+  const [authOpen, setAuthOpen] = useState(true);
+  const [dashTab, setDashTab] = useState(() => {
+    if (targetContainer === 'cards' || targetContainer === 'card') return 'cards';
+    if (targetContainer === 'releases' || targetContainer === 'loader') return 'releases';
+    if (targetContainer === 'password') return 'password';
+    if (targetContainer === 'hardware') return 'hardware';
+    return 'profile';
+  });
   const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null);
   const [pending, setPending] = useState(false);
   const [loaderInfo, setLoaderInfo] = useState<LoaderInfo | null>(null);
 
   // Theme & Palette State
   const [palette, setPalette] = useState<PaletteOption>(() => {
+    const urlPalette = searchParams.get('palette');
+    if (urlPalette) {
+      const match = PALETTES.find(p => p.name.toLowerCase() === urlPalette.toLowerCase());
+      if (match) return match;
+    }
     const saved = localStorage.getItem('roselle_palette');
     return PALETTES.find(p => p.name === saved) || PALETTES[0];
   });
   const [themeMode, setThemeMode] = useState<'system' | 'dark' | 'light'>(() => {
+    const urlTheme = searchParams.get('theme') as 'system' | 'dark' | 'light';
+    if (urlTheme && ['system', 'dark', 'light'].includes(urlTheme)) return urlTheme;
     return (localStorage.getItem('roselle_theme') as 'system' | 'dark' | 'light') || 'system';
   });
 
@@ -41,6 +58,20 @@ export function CloudflareApp() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const notify = (text: string, error = false) => setToast({ text, error });
+
+  // Embedded mode setup & postMessage readiness
+  useEffect(() => {
+    if (isEmbed) {
+      document.documentElement.classList.add('is-embedded');
+      document.body.classList.add('is-embedded');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && isEmbed) {
+      window.parent.postMessage({ type: 'roselle:container_ready', container: targetContainer }, '*');
+    }
+  }, [loading]);
 
   // Apply theme & palette tokens to root DOM
   useEffect(() => {
@@ -138,7 +169,11 @@ export function CloudflareApp() {
     });
 
   const returnToPortal = () => {
-    window.location.href = PORTAL_URL;
+    if (isEmbed) {
+      window.parent.postMessage({ type: 'roselle:close' }, '*');
+    } else {
+      window.location.href = PORTAL_URL;
+    }
   };
 
   if (loading) {
@@ -159,97 +194,111 @@ export function CloudflareApp() {
     <>
       <Toast toast={toast} onClose={() => setToast(null)} />
 
-      {/* Cloudflare App Navbar */}
-      <div className="navbar-wrapper">
-        <nav className="navbar">
-          <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
-            <span className="brand-badge brand-badge-rose">
-              <RoseLogo size={20} color="var(--accent-text)" />
-            </span>
-            <span>Roselle Console<span className="dot">.</span></span>
-          </div>
-
-          <div className="nav-actions">
-            {/* Theme & Palette Switcher */}
-            <div className="popover-container">
-              <button
-                type="button"
-                className="btn-icon"
-                title="Theme & Accent Palette"
-                onClick={() => setPaletteMenuOpen(!paletteMenuOpen)}
-              >
-                <Palette size={17} />
-              </button>
-              {paletteMenuOpen && (
-                <div className="palette-menu">
-                  <span className="palette-title">Accent Color</span>
-                  <div className="palette-swatches">
-                    {PALETTES.map(p => (
-                      <button
-                        key={p.name}
-                        type="button"
-                        className={`swatch-btn ${palette.name === p.name ? 'active' : ''}`}
-                        style={{ backgroundColor: p.hex }}
-                        title={p.name}
-                        onClick={() => {
-                          setPalette(p);
-                          setPaletteMenuOpen(false);
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <span className="palette-title">Theme Mode</span>
-                  <div className="theme-mode-row">
-                    <button
-                      type="button"
-                      className={`theme-mode-btn ${themeMode === 'system' ? 'active' : ''}`}
-                      onClick={() => setThemeMode('system')}
-                    >
-                      <Monitor size={13} /> Auto
-                    </button>
-                    <button
-                      type="button"
-                      className={`theme-mode-btn ${themeMode === 'dark' ? 'active' : ''}`}
-                      onClick={() => setThemeMode('dark')}
-                    >
-                      <Moon size={13} /> Dark
-                    </button>
-                    <button
-                      type="button"
-                      className={`theme-mode-btn ${themeMode === 'light' ? 'active' : ''}`}
-                      onClick={() => setThemeMode('light')}
-                    >
-                      <Sun size={13} /> Light
-                    </button>
-                  </div>
-                </div>
-              )}
+      {/* Cloudflare App Navbar (hidden in embedded mode) */}
+      {!isEmbed && (
+        <div className="navbar-wrapper">
+          <nav className="navbar">
+            <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
+              <span className="brand-badge brand-badge-rose">
+                <RoseLogo size={20} color="var(--accent-text)" />
+              </span>
+              <span>Roselle Console<span className="dot">.</span></span>
             </div>
 
-            {/* Link back to Main Server Portal */}
-            <button className="btn-secondary" onClick={returnToPortal} title="Return to Portal Homepage">
-              <ArrowLeft size={14} /> Back to Portal
-            </button>
+            <div className="nav-actions">
+              {/* Theme & Palette Switcher */}
+              <div className="popover-container">
+                <button
+                  type="button"
+                  className="btn-icon"
+                  title="Theme & Accent Palette"
+                  onClick={() => setPaletteMenuOpen(!paletteMenuOpen)}
+                >
+                  <Palette size={17} />
+                </button>
+                {paletteMenuOpen && (
+                  <div className="palette-menu">
+                    <span className="palette-title">Accent Color</span>
+                    <div className="palette-swatches">
+                      {PALETTES.map(p => (
+                        <button
+                          key={p.name}
+                          type="button"
+                          className={`swatch-btn ${palette.name === p.name ? 'active' : ''}`}
+                          style={{ backgroundColor: p.hex }}
+                          title={p.name}
+                          onClick={() => {
+                            setPalette(p);
+                            setPaletteMenuOpen(false);
+                          }}
+                        />
+                      ))}
+                    </div>
 
-            {user ? (
-              <div className="user-nav-badge" onClick={logout} title="Click to Sign Out" style={{ cursor: 'pointer' }}>
-                {user.avatar ? (
-                  <img src={user.avatar} className="avatar-sm" alt="User" />
-                ) : (
-                  <div className="avatar-sm">{user.username.slice(0, 1).toUpperCase()}</div>
+                    <span className="palette-title">Theme Mode</span>
+                    <div className="theme-mode-row">
+                      <button
+                        type="button"
+                        className={`theme-mode-btn ${themeMode === 'system' ? 'active' : ''}`}
+                        onClick={() => setThemeMode('system')}
+                      >
+                        <Monitor size={13} /> Auto
+                      </button>
+                      <button
+                        type="button"
+                        className={`theme-mode-btn ${themeMode === 'dark' ? 'active' : ''}`}
+                        onClick={() => setThemeMode('dark')}
+                      >
+                        <Moon size={13} /> Dark
+                      </button>
+                      <button
+                        type="button"
+                        className={`theme-mode-btn ${themeMode === 'light' ? 'active' : ''}`}
+                        onClick={() => setThemeMode('light')}
+                      >
+                        <Sun size={13} /> Light
+                      </button>
+                    </div>
+                  </div>
                 )}
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{user.username}</span>
-                <LogOut size={13} style={{ marginLeft: 4, opacity: 0.6 }} />
               </div>
-            ) : (
-              <button className="btn-primary" onClick={() => setAuthOpen(true)}>
-                Sign In
+
+              {/* Link back to Main Server Portal */}
+              <button className="btn-secondary" onClick={returnToPortal} title="Return to Portal Homepage">
+                <ArrowLeft size={14} /> Back to Portal
               </button>
-            )}
-          </div>
-        </nav>
-      </div>
+
+              {user ? (
+                <div className="user-nav-badge" onClick={logout} title="Click to Sign Out" style={{ cursor: 'pointer' }}>
+                  {user.avatar ? (
+                    <img src={user.avatar} className="avatar-sm" alt="User" />
+                  ) : (
+                    <div className="avatar-sm">{user.username.slice(0, 1).toUpperCase()}</div>
+                  )}
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{user.username}</span>
+                  <LogOut size={13} style={{ marginLeft: 4, opacity: 0.6 }} />
+                </div>
+              ) : (
+                <button className="btn-primary" onClick={() => setAuthOpen(true)}>
+                  Sign In
+                </button>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
+
+      {/* Embedded Container Floating Close Button */}
+      {isEmbed && (
+        <button
+          type="button"
+          className="remote-container-close-btn"
+          onClick={returnToPortal}
+          title="Close Container"
+        >
+          ✕
+        </button>
+      )}
 
       {/* Main Containers */}
       {!user && authOpen ? (
@@ -262,6 +311,9 @@ export function CloudflareApp() {
               setUser(u);
               setAuthOpen(false);
               notify(kind === 'register' ? 'Account registered successfully!' : 'Welcome back!');
+              if (isEmbed) {
+                window.parent.postMessage({ type: 'roselle:login_success', user: u }, '*');
+              }
             })
           }
         />
@@ -296,14 +348,16 @@ export function CloudflareApp() {
         </div>
       )}
 
-      <footer className="app-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '24px 16px' }}>
-        <div>Roselle Cloud Console · Minecraft 26.2 + Forge 1.8.9</div>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)' }}>
-          <span>Powered by</span>
-          <CloudflareLogo size={18} />
-          <span style={{ fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>Cloudflare</span>
-        </div>
-      </footer>
+      {!isEmbed && (
+        <footer className="app-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '24px 16px' }}>
+          <div>Roselle Cloud Console · Minecraft 26.2 + Forge 1.8.9</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)' }}>
+            <span>Powered by</span>
+            <CloudflareLogo size={18} />
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>Cloudflare</span>
+          </div>
+        </footer>
+      )}
     </>
   );
 }
