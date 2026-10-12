@@ -131,13 +131,40 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="auth-wrapper">
-        <div className="glass-panel" style={{ padding: '36px 44px', textAlign: 'center' }}>
-          <div className="brand-badge brand-badge-rose" style={{ width: 54, height: 54, margin: '0 auto 16px' }}>
-            <RoseLogo size={32} color="var(--accent-text)" glow animate />
+      <div className="portal-loading-wrapper">
+        <div className="portal-loading-container">
+          <div className="circular-loader-wrapper">
+            <svg className="circular-loader-svg" viewBox="0 0 54 54">
+              <circle
+                className="circular-loader-track"
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                strokeWidth="3.5"
+              />
+              <circle
+                className="circular-loader-indicator"
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="circular-loader-center">
+              <RoseLogo size={22} color="var(--accent-text)" />
+            </div>
           </div>
-          <h3 style={{ marginBottom: 6 }}>Connecting to Roselle</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Initializing cloud session…</p>
+          <div className="portal-loading-texts">
+            <h3 className="portal-loading-title">Connecting to Roselle</h3>
+            <p className="portal-loading-subtitle">Initializing secure cloud session…</p>
+          </div>
+          <div className="portal-loading-footer">
+            <CloudflareLogo size={16} />
+            <span>Secured & Powered by Cloudflare</span>
+          </div>
         </div>
       </div>
     );

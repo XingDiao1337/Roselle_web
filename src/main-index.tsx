@@ -18,7 +18,6 @@ export const APP_URL = (import.meta.env.VITE_APP_URL || 'https://roselle-web.pag
 export function PortalApp() {
   const [content, setContent] = useState<UiContent>(DEFAULT_CONTENT);
   const [loadingPhase, setLoadingPhase] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [progress, setProgress] = useState(15);
   const [errorInfo, setErrorInfo] = useState<{ reason: string; details?: string } | null>(null);
 
   // View Navigation State: Home (主界面), Auth (登录界面), Console (控制台界面)
@@ -123,24 +122,22 @@ export function PortalApp() {
     }
   }, [user?.id, dashTab, loadingPhase]);
 
-  // Initialization: Fetch all containers, texts, and configs from Cloudflare
+  // Initialization: Fetch all containers, texts, and configs from Cloudflare before entering the website
   const initAll = async () => {
     setLoadingPhase('loading');
-    setProgress(18);
     setErrorInfo(null);
 
     if (!navigator.onLine) {
       setErrorInfo({
-        reason: '本地网络断开 (Client Offline)',
-        details: '检测到当前设备网络连接中断，无法连接至 Cloudflare 节点拉取界面容器。'
+        reason: content.loading.offlineReason || 'Client Offline: Cannot connect to the internet',
+        details: 'Local device network connection lost. Unable to reach Cloudflare edge nodes.'
       });
       setLoadingPhase('error');
       return;
     }
 
     try {
-      // Step 1: Pull UI Texts from Cloudflare
-      setProgress(40);
+      // Step 1: Pull UI Texts and containers from Cloudflare
       const cloudData = await fetchCloudContent(APP_URL).catch(err => {
         console.warn('Could not fetch remote content, using fallback:', err);
         return DEFAULT_CONTENT;
@@ -148,7 +145,6 @@ export function PortalApp() {
       setContent(cloudData);
 
       // Step 2: Concurrently probe session & latest artifacts
-      setProgress(70);
       const [currentUser, latestLoader] = await Promise.all([
         api<User>('/api/web/me').catch(() => null),
         api<LoaderInfo>('/api/web/loader/latest').catch(() => null)
@@ -158,7 +154,6 @@ export function PortalApp() {
         setUser(currentUser);
         // Step 3: If admin, pre-fetch admin records
         if (currentUser.role === 'ADMIN') {
-          setProgress(88);
           const [u, c, r] = await Promise.all([
             api<User[]>('/api/web/admin/users').catch(() => []),
             api<Card[]>('/api/web/admin/cards').catch(() => []),
@@ -174,15 +169,15 @@ export function PortalApp() {
         setLoaderInfo(latestLoader);
       }
 
-      setProgress(100);
+      // Smooth reveal transition into the main portal
       setTimeout(() => {
         setLoadingPhase('ready');
-      }, 300);
+      }, 350);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorInfo({
-        reason: 'Cloudflare 界面容器获取超时或网络异常 (Fetch Failed)',
-        details: `无法从 ${APP_URL} 传输组件与配置。详情: ${msg}`
+        reason: content.loading.timeoutReason || 'Cloudflare Edge Connection Error',
+        details: `Unable to transfer components from ${APP_URL}. Details: ${msg}`
       });
       setLoadingPhase('error');
     }
@@ -201,6 +196,71 @@ export function PortalApp() {
     });
 
   const quotesList = content.site.quotes && content.site.quotes.length > 0 ? content.site.quotes : DEFAULT_CONTENT.site.quotes;
+
+  // Step 0: Circular Loading Screen before entering the Main Website (主界面之前)
+  if (loadingPhase === 'loading') {
+    return (
+      <div className="portal-loading-wrapper">
+        <div className="portal-loading-container">
+          <div className="circular-loader-wrapper">
+            <svg className="circular-loader-svg" viewBox="0 0 54 54">
+              <circle
+                className="circular-loader-track"
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                strokeWidth="3.5"
+              />
+              <circle
+                className="circular-loader-indicator"
+                cx="27"
+                cy="27"
+                r="22"
+                fill="none"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="circular-loader-center">
+              <RoseLogo size={22} color="var(--accent-text)" />
+            </div>
+          </div>
+
+          <div className="portal-loading-texts">
+            <h3 className="portal-loading-title">{content.loading.title}</h3>
+            <p className="portal-loading-subtitle">{content.loading.subtitle}</p>
+          </div>
+
+          <div className="portal-loading-footer">
+            <CloudflareLogo size={16} />
+            <span>Secured & Powered by Cloudflare</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 0.1: Error Screen if remote components fail to transfer
+  if (loadingPhase === 'error') {
+    return (
+      <div className="portal-loading-wrapper">
+        <div className="portal-loading-container remote-container-error">
+          <div className="error-badge">
+            <WifiOff size={28} color="#ef4444" />
+          </div>
+          <h3 className="portal-loading-title">{content.loading.errorTitle}</h3>
+          <p className="error-reason">{errorInfo?.reason}</p>
+          {errorInfo?.details && <p className="error-details">{errorInfo.details}</p>}
+          <div className="error-actions" style={{ marginTop: 20 }}>
+            <button type="button" className="btn-primary" onClick={initAll}>
+              <RefreshCw size={15} /> {content.loading.retryBtn}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -347,54 +407,25 @@ export function PortalApp() {
           onOpenConsole={() => setCurrentView(user ? 'console' : 'auth')}
           onOpenLogin={() => setCurrentView('auth')}
           content={content.home}
-          loadingPhase={loadingPhase}
+          loadingPhase="ready"
         />
       ) : currentView === 'auth' ? (
-        loadingPhase === 'loading' ? (
-          /* Blank Container Framework (Matches 19a47354-ff6f-42bd-a54a-8378bd5d70ac.png) */
-          <div className="auth-wrapper">
-            <div className="auth-blank-container">
-              <div className="auth-blank-track">
-                <div className="auth-blank-bar" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          </div>
-        ) : loadingPhase === 'error' ? (
-          /* Failure inside Blank Container Framework */
-          <div className="auth-wrapper">
-            <div className="auth-blank-container remote-container-error">
-              <div className="error-badge">
-                <WifiOff size={28} color="#ef4444" />
-              </div>
-              <h3>{content.loading.errorTitle}</h3>
-              <p className="error-reason">{errorInfo?.reason}</p>
-              {errorInfo?.details && <p className="error-details">{errorInfo.details}</p>}
-              <div className="error-actions" style={{ marginTop: 16 }}>
-                <button type="button" className="btn-primary" onClick={initAll}>
-                  <RefreshCw size={15} /> {content.loading.retryBtn}
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Unauthenticated: Centered Frosted Glass Login Container populated with Cloudflare text & inputs */
-          <AuthModal
-            pending={pending}
-            content={content.auth}
-            onBack={() => setCurrentView('home')}
-            onSubmit={(kind, data) =>
-              run(async () => {
-                const u = await api<User>(`/api/web/auth/${kind}`, 'POST', data);
-                setUser(u);
-                setCurrentView('console');
-                notify(kind === 'register' ? 'Account registered successfully!' : 'Welcome back!');
-                if (u.role === 'ADMIN') {
-                  refreshAdmin();
-                }
-              })
-            }
-          />
-        )
+        <AuthModal
+          pending={pending}
+          content={content.auth}
+          onBack={() => setCurrentView('home')}
+          onSubmit={(kind, data) =>
+            run(async () => {
+              const u = await api<User>(`/api/web/auth/${kind}`, 'POST', data);
+              setUser(u);
+              setCurrentView('console');
+              notify(kind === 'register' ? 'Account registered successfully!' : 'Welcome back!');
+              if (u.role === 'ADMIN') {
+                refreshAdmin();
+              }
+            })
+          }
+        />
       ) : (
         /* Authenticated: Integrated Dashboard Containers with Cloudflare text & components */
         !user ? (

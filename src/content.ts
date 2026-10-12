@@ -121,10 +121,10 @@ export const DEFAULT_CONTENT: UiContent = {
   loading: {
     title: "Connecting to Roselle Cloud",
     subtitle: "Transferring container components & secure configuration from Cloudflare…",
-    errorTitle: "界面获取失败",
-    retryBtn: "重新获取界面",
-    offlineReason: "本地网络断开 (Client Offline): 无法连接至互联网",
-    timeoutReason: "Cloudflare 边缘节点传输超时 (Connection Timeout): 请检查网络代理或节点延迟"
+    errorTitle: "Interface Connection Failed",
+    retryBtn: "Retry Connection",
+    offlineReason: "Client Offline: No internet connection detected",
+    timeoutReason: "Cloudflare Edge Timeout: Failed to transfer remote components"
   },
   home: {
     heroTitlePrefix: "Roselle Client",
