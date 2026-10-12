@@ -26,6 +26,7 @@ export interface DashboardViewProps {
   setSelectedUser: (u: User | null) => void;
   refreshAdmin: () => Promise<void>;
   content?: UiContent;
+  onReturnHome?: () => void;
 }
 
 export function DashboardView({
@@ -46,7 +47,8 @@ export function DashboardView({
   selectedUser,
   setSelectedUser,
   refreshAdmin,
-  content
+  content,
+  onReturnHome
 }: DashboardViewProps) {
   return (
     <div className="dashboard-container">
@@ -57,6 +59,7 @@ export function DashboardView({
         setDashTab={setDashTab}
         pending={pending}
         onLogout={logout}
+        onReturnHome={onReturnHome}
       />
 
       {/* Profile Tab & Integrated Containers */}

@@ -8,7 +8,8 @@ import { PALETTES, type PaletteOption } from './components/common/Navbar';
 import { CloudflareLogo } from './components/common/CloudflareLogo';
 import { AuthModal } from './components/auth/AuthModal';
 import { DashboardView } from './components/dashboard/DashboardView';
-import { Palette, Monitor, Moon, Sun, WifiOff, RefreshCw, LogOut } from 'lucide-react';
+import { HomePage } from './components/home/HomePage';
+import { Palette, Monitor, Moon, Sun, WifiOff, RefreshCw, LogOut, ArrowRight } from 'lucide-react';
 import './style.css';
 
 // Target URL for the Cloudflare Pages App / Dashboard / Content
@@ -19,6 +20,9 @@ export function PortalApp() {
   const [loadingPhase, setLoadingPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [progress, setProgress] = useState(15);
   const [errorInfo, setErrorInfo] = useState<{ reason: string; details?: string } | null>(null);
+
+  // View Navigation State: Home (主界面), Auth (登录界面), Console (控制台界面)
+  const [currentView, setCurrentView] = useState<'home' | 'auth' | 'console'>('home');
 
   // User and Dashboard State
   const [user, setUser] = useState<User | null>(null);
@@ -192,6 +196,7 @@ export function PortalApp() {
     run(async () => {
       await api('/api/web/auth/logout', 'POST');
       setUser(null);
+      setCurrentView('home');
       notify('Signed out successfully');
     });
 
@@ -204,7 +209,7 @@ export function PortalApp() {
       {/* Global Navbar */}
       <div className="navbar-wrapper">
         <nav className="navbar">
-          <div className="nav-brand" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer' }}>
+          <div className="nav-brand" onClick={() => { setCurrentView('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ cursor: 'pointer' }}>
             <span className="brand-badge brand-badge-rose">
               <RoseLogo size={20} color="var(--accent-text)" />
             </span>
@@ -291,89 +296,147 @@ export function PortalApp() {
             </div>
 
             {user ? (
-              <div className="user-nav-badge" onClick={logout} title="Click to Sign Out" style={{ cursor: 'pointer' }}>
-                {user.avatar ? (
-                  <img src={user.avatar} className="avatar-sm" alt="User" />
-                ) : (
-                  <div className="avatar-sm">{user.username.slice(0, 1).toUpperCase()}</div>
-                )}
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{user.username}</span>
-                <LogOut size={13} style={{ marginLeft: 4, opacity: 0.6 }} />
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  type="button"
+                  className={`btn-secondary ${currentView === 'console' ? 'active' : ''}`}
+                  onClick={() => setCurrentView('console')}
+                  style={{ fontSize: 13, padding: '7px 16px' }}
+                >
+                  Console
+                </button>
+                <div className="user-nav-badge" onClick={logout} title="Click to Sign Out" style={{ cursor: 'pointer' }}>
+                  {user.avatar ? (
+                    <img src={user.avatar} className="avatar-sm" alt="User" />
+                  ) : (
+                    <div className="avatar-sm">{user.username.slice(0, 1).toUpperCase()}</div>
+                  )}
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{user.username}</span>
+                  <LogOut size={13} style={{ marginLeft: 4, opacity: 0.6 }} />
+                </div>
               </div>
             ) : (
-              <span className="badge badge-active" style={{ fontSize: 12 }}>
-                Cloud Secured
-              </span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  type="button"
+                  className={`btn-secondary ${currentView === 'auth' ? 'active' : ''}`}
+                  onClick={() => setCurrentView('auth')}
+                  style={{ fontSize: 13, padding: '7px 16px' }}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => setCurrentView('auth')}
+                  style={{ fontSize: 13, padding: '7px 18px' }}
+                >
+                  Launch Console <ArrowRight size={14} />
+                </button>
+              </div>
             )}
           </div>
         </nav>
       </div>
 
-      {/* Main Container Views / Blank Container Framework */}
-      {loadingPhase === 'loading' ? (
-        /* Blank Container Framework (Matches 19a47354-ff6f-42bd-a54a-8378bd5d70ac.png) */
-        <div className="auth-wrapper">
-          <div className="auth-blank-container">
-            <div className="auth-blank-track">
-              <div className="auth-blank-bar" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        </div>
-      ) : loadingPhase === 'error' ? (
-        /* Failure inside Blank Container Framework */
-        <div className="auth-wrapper">
-          <div className="auth-blank-container remote-container-error">
-            <div className="error-badge">
-              <WifiOff size={28} color="#ef4444" />
-            </div>
-            <h3>{content.loading.errorTitle}</h3>
-            <p className="error-reason">{errorInfo?.reason}</p>
-            {errorInfo?.details && <p className="error-details">{errorInfo.details}</p>}
-            <div className="error-actions" style={{ marginTop: 16 }}>
-              <button type="button" className="btn-primary" onClick={initAll}>
-                <RefreshCw size={15} /> {content.loading.retryBtn}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : !user ? (
-        /* Unauthenticated: Centered Frosted Glass Login Container populated with Cloudflare text & inputs */
-        <AuthModal
-          pending={pending}
-          content={content.auth}
-          onSubmit={(kind, data) =>
-            run(async () => {
-              const u = await api<User>(`/api/web/auth/${kind}`, 'POST', data);
-              setUser(u);
-              notify(kind === 'register' ? 'Account registered successfully!' : 'Welcome back!');
-              if (u.role === 'ADMIN') {
-                refreshAdmin();
-              }
-            })
-          }
+      {/* Main Views: Home (主界面), Auth (登录界面), Console (控制台界面) */}
+      {currentView === 'home' ? (
+        <HomePage
+          user={user}
+          loaderInfo={loaderInfo}
+          onOpenConsole={() => setCurrentView(user ? 'console' : 'auth')}
+          onOpenLogin={() => setCurrentView('auth')}
+          content={content.home}
+          loadingPhase={loadingPhase}
         />
+      ) : currentView === 'auth' ? (
+        loadingPhase === 'loading' ? (
+          /* Blank Container Framework (Matches 19a47354-ff6f-42bd-a54a-8378bd5d70ac.png) */
+          <div className="auth-wrapper">
+            <div className="auth-blank-container">
+              <div className="auth-blank-track">
+                <div className="auth-blank-bar" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          </div>
+        ) : loadingPhase === 'error' ? (
+          /* Failure inside Blank Container Framework */
+          <div className="auth-wrapper">
+            <div className="auth-blank-container remote-container-error">
+              <div className="error-badge">
+                <WifiOff size={28} color="#ef4444" />
+              </div>
+              <h3>{content.loading.errorTitle}</h3>
+              <p className="error-reason">{errorInfo?.reason}</p>
+              {errorInfo?.details && <p className="error-details">{errorInfo.details}</p>}
+              <div className="error-actions" style={{ marginTop: 16 }}>
+                <button type="button" className="btn-primary" onClick={initAll}>
+                  <RefreshCw size={15} /> {content.loading.retryBtn}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Unauthenticated: Centered Frosted Glass Login Container populated with Cloudflare text & inputs */
+          <AuthModal
+            pending={pending}
+            content={content.auth}
+            onBack={() => setCurrentView('home')}
+            onSubmit={(kind, data) =>
+              run(async () => {
+                const u = await api<User>(`/api/web/auth/${kind}`, 'POST', data);
+                setUser(u);
+                setCurrentView('console');
+                notify(kind === 'register' ? 'Account registered successfully!' : 'Welcome back!');
+                if (u.role === 'ADMIN') {
+                  refreshAdmin();
+                }
+              })
+            }
+          />
+        )
       ) : (
         /* Authenticated: Integrated Dashboard Containers with Cloudflare text & components */
-        <DashboardView
-          user={user}
-          dashTab={dashTab}
-          setDashTab={setDashTab}
-          pending={pending}
-          run={run}
-          setUser={setUser}
-          notify={notify}
-          logout={logout}
-          users={users}
-          cards={cards}
-          releases={releases}
-          loaderInfo={loaderInfo}
-          generated={generated}
-          setGenerated={setGenerated}
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
-          refreshAdmin={refreshAdmin}
-          content={content}
-        />
+        !user ? (
+          <AuthModal
+            pending={pending}
+            content={content.auth}
+            onBack={() => setCurrentView('home')}
+            onSubmit={(kind, data) =>
+              run(async () => {
+                const u = await api<User>(`/api/web/auth/${kind}`, 'POST', data);
+                setUser(u);
+                setCurrentView('console');
+                notify(kind === 'register' ? 'Account registered successfully!' : 'Welcome back!');
+                if (u.role === 'ADMIN') {
+                  refreshAdmin();
+                }
+              })
+            }
+          />
+        ) : (
+          <DashboardView
+            user={user}
+            dashTab={dashTab}
+            setDashTab={setDashTab}
+            pending={pending}
+            run={run}
+            setUser={setUser}
+            notify={notify}
+            logout={logout}
+            users={users}
+            cards={cards}
+            releases={releases}
+            loaderInfo={loaderInfo}
+            generated={generated}
+            setGenerated={setGenerated}
+            selectedUser={selectedUser}
+            setSelectedUser={setSelectedUser}
+            refreshAdmin={refreshAdmin}
+            content={content}
+            onReturnHome={() => setCurrentView('home')}
+          />
+        )
       )}
 
       {/* Global Footer */}

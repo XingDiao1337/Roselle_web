@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserRound, Users, Ticket, Package, LogOut } from 'lucide-react';
+import { UserRound, Users, Ticket, Package, LogOut, Home } from 'lucide-react';
 import type { User } from '../../api';
 
 export interface DashboardNavProps {
@@ -8,6 +8,7 @@ export interface DashboardNavProps {
   setDashTab: (tab: string) => void;
   pending: boolean;
   onLogout: () => void;
+  onReturnHome?: () => void;
 }
 
 export function DashboardNav({
@@ -15,7 +16,8 @@ export function DashboardNav({
   dashTab,
   setDashTab,
   pending,
-  onLogout
+  onLogout,
+  onReturnHome
 }: DashboardNavProps) {
   const navItems = [
     { id: 'profile', label: 'Profile', icon: UserRound },
@@ -46,6 +48,17 @@ export function DashboardNav({
       })}
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+        {onReturnHome && (
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ padding: '6px 14px', fontSize: 12.5 }}
+            onClick={onReturnHome}
+            title="Return to Portal Home"
+          >
+            <Home size={14} /> Home
+          </button>
+        )}
         <button
           type="button"
           className="btn-secondary"

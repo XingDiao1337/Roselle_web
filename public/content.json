@@ -23,6 +23,41 @@
     "offlineReason": "本地网络断开 (Client Offline): 无法连接至互联网",
     "timeoutReason": "Cloudflare 边缘节点传输超时 (Connection Timeout): 请检查网络代理或节点延迟"
   },
+  "home": {
+    "heroTitlePrefix": "Roselle Client",
+    "heroTitleGradient": "Pure Performance & Refined Aesthetics",
+    "heroDescription": "One account and injector for two distinct clients: Minecraft 26.2 and Forge 1.8.9. Choose the matching game version before injection; each version receives its own signed DLL release.",
+    "metrics": [
+      { "value": "26.2", "label": "Modern client" },
+      { "value": "1.8.9", "label": "Forge client" },
+      { "value": "AES-256 GCM", "label": "Hardware Bound Encrypted" },
+      { "value": "< 10ms", "label": "Realtime Token Latency" }
+    ],
+    "features": [
+      {
+        "icon": "Cpu",
+        "title": "Version-Matched Runtime",
+        "desc": "Separate DLL releases for the modern client and Forge 1.8.9. The injector requests only the release selected for the target game, while existing 26.2 releases remain on their original channel."
+      },
+      {
+        "icon": "Layers",
+        "title": "Client-Specific Rendering",
+        "desc": "Each client retains its own rendering stack and ClickGUI, designed for its Minecraft version. Shared account delivery does not force the two game runtimes into one implementation."
+      },
+      {
+        "icon": "ShieldCheck",
+        "title": "Cloud Cryptography & Safety",
+        "desc": "Encrypted DPAPI hardware fingerprinting, dynamic timestamp request windows, and one-time download tickets ensuring secure and exclusive client distribution."
+      },
+      {
+        "icon": "Sparkles",
+        "title": "Frosted Glass ClickGUI",
+        "desc": "Apple-inspired fluid ergonomics with cubic-bezier transition curves, real-time palette customizer, and an interactive module drawer designed for rapid in-game tuning."
+      }
+    ],
+    "launchBtn": "Launch Console",
+    "signInBtn": "Sign In"
+  },
   "auth": {
     "welcomeTitle": "Welcome Back",
     "welcomeSubtitle": "Sign in to access your cloud console",
