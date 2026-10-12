@@ -30,7 +30,7 @@ export async function api<T>(path: string, method = 'GET', data?: unknown): Prom
   if (tokenHeader && typeof localStorage !== 'undefined') {
     localStorage.setItem('roselle_token', tokenHeader);
   }
-  if (path === '/api/web/auth/logout' && typeof localStorage !== 'undefined') {
+  if ((path === '/api/web/auth/logout' || (res.status === 401 && path === '/api/web/me')) && typeof localStorage !== 'undefined') {
     localStorage.removeItem('roselle_token');
   }
 

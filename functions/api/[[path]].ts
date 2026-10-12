@@ -42,11 +42,29 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   headers.delete('origin');
   headers.delete('referer');
 
-  // Support token header fallback in case cross-origin cookies are restricted by client browser
+  // Support token header priority and cookie deduplication
   const tokenHeader = request.headers.get('X-Roselle-Token') || request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
   const currentCookie = headers.get('Cookie') || '';
-  if (tokenHeader && !currentCookie.includes('roselle_web=')) {
-    headers.set('Cookie', currentCookie ? `${currentCookie}; roselle_web=${tokenHeader}` : `roselle_web=${tokenHeader}`);
+
+  if (tokenHeader) {
+    // When the client explicitly passes X-Roselle-Token, it is the active, verified session token.
+    // Purge ANY stale or duplicate roselle_web cookies and inject the exact active token.
+    const otherCookies = currentCookie
+      .split(';')
+      .map(c => c.trim())
+      .filter(c => c && !c.startsWith('roselle_web='))
+      .join('; ');
+    headers.set('Cookie', otherCookies ? `roselle_web=${tokenHeader}; ${otherCookies}` : `roselle_web=${tokenHeader}`);
+  } else if (currentCookie.includes('roselle_web=')) {
+    // If no header token is provided, check for multiple roselle_web cookies in the Cookie header.
+    // Browsers often accumulate duplicate cookies across paths/domains; the last one is the latest.
+    const parts = currentCookie.split(';').map(c => c.trim()).filter(Boolean);
+    const roselleCookies = parts.filter(c => c.startsWith('roselle_web='));
+    const otherCookies = parts.filter(c => !c.startsWith('roselle_web='));
+    if (roselleCookies.length > 1) {
+      const latestRoselle = roselleCookies[roselleCookies.length - 1];
+      headers.set('Cookie', [latestRoselle, ...otherCookies].join('; '));
+    }
   }
 
   const newRequest = new Request(targetUrl, {
@@ -85,18 +103,24 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     responseHeaders.set('Access-Control-Expose-Headers', 'X-Roselle-Token, Set-Cookie');
 
     // Rewrite Set-Cookie to allow cross-origin / embedded container usage
-    const setCookie = responseHeaders.get('Set-Cookie');
-    if (setCookie) {
-      let rewritten = setCookie.replace(/SameSite=Strict/gi, 'SameSite=None; Secure');
-      if (!rewritten.includes('Partitioned')) {
-        rewritten += '; Partitioned';
-      }
-      responseHeaders.set('Set-Cookie', rewritten);
+    const getSetCookieFn = (res.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie;
+    const rawSetCookies: string[] = typeof getSetCookieFn === 'function'
+      ? getSetCookieFn.call(res.headers)
+      : (res.headers.get('Set-Cookie') ? [res.headers.get('Set-Cookie')!] : []);
 
-      // Extract roselle_web token and expose in custom header as resilient fallback
-      const tokenMatch = setCookie.match(/roselle_web=([^;]+)/);
-      if (tokenMatch && tokenMatch[1]) {
-        responseHeaders.set('X-Roselle-Token', tokenMatch[1]);
+    if (rawSetCookies.length > 0) {
+      responseHeaders.delete('Set-Cookie');
+      for (const sc of rawSetCookies) {
+        let rewritten = sc.replace(/SameSite=Strict/gi, 'SameSite=None; Secure');
+        if (!rewritten.includes('Partitioned') && !rewritten.includes('Max-Age=0') && !rewritten.includes('expires=')) {
+          rewritten += '; Partitioned';
+        }
+        responseHeaders.append('Set-Cookie', rewritten);
+
+        const tokenMatch = sc.match(/roselle_web=([^;]+)/);
+        if (tokenMatch && tokenMatch[1] && tokenMatch[1] !== 'deleted') {
+          responseHeaders.set('X-Roselle-Token', tokenMatch[1]);
+        }
       }
     }
 
